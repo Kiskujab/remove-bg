@@ -1,9 +1,9 @@
 The fonts in this folder are subsets (latin, latin-ext) served by Google Fonts,
 self-hosted so the site makes no third-party requests.
 
-Young Serif        — Copyright 2023 The Young Serif Project Authors (https://github.com/noirblancrouge/YoungSerif)
-Schibsted Grotesk  — Copyright 2023 The Schibsted-Grotesk Project Authors (https://github.com/schibsted/schibsted-grotesk)
-Martian Mono       — Copyright 2020 The Martian Mono Project Authors (https://github.com/evilmartians/mono)
+Bricolage Grotesque — Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage)
+Instrument Sans     — Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)
+JetBrains Mono      — Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
 
 All three are licensed under the SIL Open Font License, Version 1.1:
 https://openfontlicense.org

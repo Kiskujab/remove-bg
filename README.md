@@ -32,9 +32,9 @@ A mappa tartalmát egy repó gyökerébe kell tenni, majd: *Settings → Pages �
 - Pipettázáskor a teljes felbontású képből olvassuk ki a pontos RGB-t.
 - A csúszka mozgatásakor csak egy ≤ 2000 px-es előnézet frissül a workerben (nearest-neighbour mintavétel, így a „pontosan egyező szín” itt is valódi pixelszín). A worker ugyanazt a puffert kapja vissza és adja tovább, a kérések összevonódnak, tehát nem torlódnak fel.
 - A „Tovább” gombra egyszer fut le a teljes felbontású kivágás.
-- A tűrés skálája a képen mért legnagyobb távolsághoz igazodik: 0 = csak a pontos szín, 100 = minden pixel.
+- A tűrés lineáris, a képen mért legnagyobb színeltérés százaléka: 0% = csak a pontos szín, 100% = minden pixel. Színválasztáskor 10%-ról indul.
 - A 90°-os forgatás pixelpontos (egész mátrix, simítás nélkül), tetszőleges szögnél a vászon a forgatott kép köré bővül.
 
 ## Betűk
 
-Young Serif, Schibsted Grotesk, Martian Mono – helyben tárolva, latin + latin-ext részhalmaz (ő, ű). Licenc: `fonts/FONTS-LICENSE.txt` (SIL OFL 1.1).
+Bricolage Grotesque, Instrument Sans, JetBrains Mono – helyben tárolva, latin + latin-ext részhalmaz (ő, ű). Licenc: `fonts/FONTS-LICENSE.txt` (SIL OFL 1.1).

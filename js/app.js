@@ -8,6 +8,7 @@
   var M = window.SzMedia;
   var E = window.SzEngine;
 
+  var DEFAULT_TOL = 0.1;
   var STEPS = ['upload', 'color', 'bg', 'rotate', 'download'];
   var STEP_NAMES = { upload: 'Feltöltés', color: 'Szín', bg: 'Háttér', rotate: 'Forgatás', download: 'Letöltés' };
   var MIME = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
@@ -77,7 +78,7 @@
     ref: null,
     refPoint: null,
     mode: 'keep',
-    p: 0,
+    p: DEFAULT_TOL,
     soft: 0,
     visible: 1,
     showOriginal: false,
@@ -171,9 +172,9 @@
     });
     var fonts = document.fonts && document.fonts.load
       ? Promise.all([
-        document.fonts.load('40px "Young Serif"', 'Színolló'),
-        document.fonts.load('16px "Schibsted Grotesk"', 'őű'),
-        document.fonts.load('13px "Martian Mono"', '0°')
+        document.fonts.load('700 40px "Bricolage Grotesque"', 'Színolló'),
+        document.fonts.load('16px "Instrument Sans"', 'őű'),
+        document.fonts.load('13px "JetBrains Mono"', '0°')
       ]).catch(function () {})
       : Promise.resolve();
 
@@ -486,7 +487,7 @@
     S.img = null;
     S.ref = null;
     S.refPoint = null;
-    S.p = 0;
+    S.p = DEFAULT_TOL;
     S.soft = 0;
     S.visible = 1;
     S.previewReady = false;
@@ -496,7 +497,7 @@
     S.angle = 0;
     S.reached = 0;
     S.lastDownload = null;
-    el.tolSlider.value = 0;
+    el.tolSlider.value = DEFAULT_TOL * 1000;
     el.softSlider.value = 0;
   }
 
@@ -705,8 +706,8 @@
       var c = document.createElement('canvas');
       c.width = c.height = cell * 2;
       var x = c.getContext('2d');
-      x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, cell * 2, cell * 2);
-      x.fillStyle = '#E3E0D8'; x.fillRect(0, 0, cell, cell); x.fillRect(cell, cell, cell, cell);
+      x.fillStyle = '#4E4E4A'; x.fillRect(0, 0, cell * 2, cell * 2);
+      x.fillStyle = '#3C3C39'; x.fillRect(0, 0, cell, cell); x.fillRect(cell, cell, cell, cell);
       patternCache = { cell: cell, pattern: ctx.createPattern(c, 'repeat') };
     }
     return patternCache.pattern;
@@ -751,8 +752,8 @@
     // crop marks on the export bounds
     var L = 14 * u, g = 6 * u;
     ctx.save();
-    ctx.strokeStyle = '#161614';
-    ctx.lineWidth = 1.5 * u;
+    ctx.strokeStyle = '#FF5A1F';
+    ctx.lineWidth = 2 * u;
     ctx.beginPath();
     [[x0, y0, -1, -1], [x0 + bw, y0, 1, -1], [x0, y0 + bh, -1, 1], [x0 + bw, y0 + bh, 1, 1]].forEach(function (k) {
       ctx.moveTo(k[0] + k[2] * g, k[1]); ctx.lineTo(k[0] + k[2] * (g + L), k[1]);
@@ -861,9 +862,9 @@
     var N = 11, cell = 12, half = 5;
     var W = S.img.width, H = S.img.height;
     loupeCtx.imageSmoothingEnabled = false;
-    loupeCtx.fillStyle = '#FFFFFF';
+    loupeCtx.fillStyle = '#4E4E4A';
     loupeCtx.fillRect(0, 0, 132, 132);
-    loupeCtx.fillStyle = '#E3E0D8';
+    loupeCtx.fillStyle = '#3C3C39';
     for (var yy = 0; yy < N; yy++) for (var xx = 0; xx < N; xx++) {
       if ((xx + yy) % 2) loupeCtx.fillRect(xx * cell, yy * cell, cell / 2, cell / 2);
     }
@@ -874,10 +875,10 @@
       loupeCtx.drawImage(S.img.fullCanvas, x1, y1, x2 - x1, y2 - y1, (x1 - sx) * cell, (y1 - sy) * cell, (x2 - x1) * cell, (y2 - y1) * cell);
     }
     loupeCtx.lineWidth = 3;
-    loupeCtx.strokeStyle = '#161614';
+    loupeCtx.strokeStyle = '#000000';
     loupeCtx.strokeRect(half * cell - 1.5, half * cell - 1.5, cell + 3, cell + 3);
     loupeCtx.lineWidth = 1;
-    loupeCtx.strokeStyle = '#F0EDE4';
+    loupeCtx.strokeStyle = '#FFFFFF';
     loupeCtx.strokeRect(half * cell - 0.5, half * cell - 0.5, cell + 1, cell + 1);
 
     var d = sample(pt.x, pt.y);
@@ -1282,7 +1283,7 @@
   el.matteCustom.addEventListener('input', function () { S.matte = el.matteCustom.value; refreshDownloadUI(); });
 
   function safeName(s) {
-    var n = String(s || '').trim().replace(/[\\/:*?"<>| -]+/g, '-').replace(/[. ]+$/, '').slice(0, 120);
+    var n = String(s || '').trim().replace(/[\\/:*?"<>|\x00-\x1f]+/g, '-').replace(/[. ]+$/, '').slice(0, 120);
     return n || 'szinollo';
   }
 

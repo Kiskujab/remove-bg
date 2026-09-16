@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Színolló — háttéreltávolítás szín alapján, a böngésződben</title>
   <meta name="description" content="Kattints a színre, ami marad, és egy csúszkával állítsd be a határt. Ingyenes, korlátlan, fiók nélküli háttéreltávolító, ami a saját gépeden fut.">
-  <meta name="theme-color" content="#F0EDE4">
+  <meta name="theme-color" content="#0E0E0D">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="fonts/young-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -19,6 +19,7 @@
   <symbol id="i-rot-l" viewBox="0 0 20 20"><path d="M4.5 9.5a6 6 0 1 1 1.8 4.9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M1.8 6.2 4.6 10l3.7-2.9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
   <symbol id="i-rot-r" viewBox="0 0 20 20"><path d="M15.5 9.5a6 6 0 1 0-1.8 4.9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m18.2 6.2-2.8 3.8-3.7-2.9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
   <symbol id="i-download" viewBox="0 0 20 20"><path d="M10 2.5v11M5 8.5l5 5 5-5M3.5 17.5h13" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-mark" viewBox="0 0 24 24"><path d="M12 1.5a10.5 10.5 0 0 0 0 21z" fill="#FF5A1F"/><path d="M12 1.5a10.5 10.5 0 0 1 0 21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.6 2.4"/></symbol>
   <symbol id="i-pipette" viewBox="0 0 20 20"><path d="m12.2 3.6 4.2 4.2M14.3 5.7 4.8 15.2 3 17l1.8-.2 9.5-9.5m-2.1-2.1 2.6-2.6a1.5 1.5 0 0 1 2.1 2.1l-2.6 2.6" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 </svg>
 
@@ -35,8 +36,7 @@
 <!-- 2. Bemutató -->
 <div id="intro" class="intro" hidden>
   <header class="intro-bar">
-    <span class="wordmark">Színolló</span>
-    <span class="mono dim">nem AI — szín alapján vág</span>
+    <span class="wordmark"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>Színolló</span>
   </header>
 
   <main class="intro-main">
@@ -57,7 +57,6 @@
 
     <figure class="demo" aria-label="Élő minta">
       <div class="demo-frame">
-        <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
         <div class="demo-canvas-wrap checker">
           <canvas id="demoCanvas" width="440" height="520"></canvas>
           <span class="pick-marker is-static" id="demoMarker" aria-hidden="true"></span>
@@ -107,7 +106,7 @@
 <!-- 3–8. Munkafelület -->
 <div id="app" class="app" hidden>
   <header class="bar">
-    <button class="wordmark wordmark-btn" type="button" id="homeBtn" title="Vissza a bemutatóhoz">Színolló</button>
+    <button class="wordmark wordmark-btn" type="button" id="homeBtn" title="Vissza a bemutatóhoz"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>Színolló</button>
     <ol class="steps" id="steps">
       <li><button type="button" data-go="upload"><span class="mono">01</span> Feltöltés</button></li>
       <li><button type="button" data-go="color"><span class="mono">02</span> Szín</button></li>
@@ -154,7 +153,6 @@
 
       <div class="viewer" id="viewer" hidden>
         <div class="frame" id="frame">
-          <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
           <canvas id="view"></canvas>
           <span class="pick-marker" id="pickMarker" hidden></span>
         </div>
@@ -180,7 +178,7 @@
         <dl class="notes">
           <div><dt>Legjobb</dt><dd>Egyszínű háttér előtt, egyenletes fénnyel fotózott tárgy.</dd></div>
           <div><dt>Formátum</dt><dd>Bármi, amit a böngésződ meg tud nyitni. A HEIC többnyire csak Safariban megy.</dd></div>
-          <div><dt>Méret</dt><dd>Nincs mesterséges korlát. Nagyon nagy képeknél a böngésző vászonmérete szab határt, erről szólunk.</dd></div>
+          <div><dt>Méret</dt><dd>Az oldal nem szab méretkorlátot. Nagyon nagy képeknél a böngésző vászonmérete szab határt, erről szólunk.</dd></div>
         </dl>
       </section>
 
@@ -259,10 +257,10 @@
               <label class="hex-field"><span class="visually-hidden">Színkód</span><input class="mono" id="hexInput" type="text" value="#FFFFFF" maxlength="7" spellcheck="false" autocomplete="off"></label>
               <div class="presets" id="presets">
                 <button type="button" data-hex="#FFFFFF" title="Fehér" style="--c:#FFFFFF"></button>
-                <button type="button" data-hex="#F0EDE4" title="Papír" style="--c:#F0EDE4"></button>
+                <button type="button" data-hex="#F3F1EC" title="Törtfehér" style="--c:#F3F1EC"></button>
                 <button type="button" data-hex="#8C8C8C" title="Szürke" style="--c:#8C8C8C"></button>
-                <button type="button" data-hex="#161614" title="Fekete" style="--c:#161614"></button>
-                <button type="button" data-hex="#00B140" title="Zöld" style="--c:#00B140"></button>
+                <button type="button" data-hex="#0E0E0D" title="Fekete" style="--c:#0E0E0D"></button>
+                <button type="button" data-hex="#FF5A1F" title="Narancs" style="--c:#FF5A1F"></button>
                 <button type="button" data-hex="#1F4FD1" title="Kék" style="--c:#1F4FD1"></button>
               </div>
             </div>
@@ -310,7 +308,7 @@
               <g id="dialTicks"></g>
               <g id="dialHand">
                 <line x1="100" y1="100" x2="100" y2="26" class="dial-hand"/>
-                <rect x="92" y="14" width="16" height="16" class="dial-knob"/>
+                <circle cx="100" cy="22" r="9" class="dial-knob"/>
               </g>
               <circle cx="100" cy="100" r="3.5" class="dial-hub"/>
             </svg>
@@ -358,7 +356,7 @@
           <p><strong>A JPG nem ismeri az átlátszóságot.</strong> Az üres részek ezzel a színnel telnek ki:</p>
           <div class="matte-row">
             <button type="button" class="matte-opt" data-matte="#FFFFFF" aria-pressed="true"><span style="--c:#FFFFFF"></span>Fehér</button>
-            <button type="button" class="matte-opt" data-matte="#161614" aria-pressed="false"><span style="--c:#161614"></span>Fekete</button>
+            <button type="button" class="matte-opt" data-matte="#0E0E0D" aria-pressed="false"><span style="--c:#0E0E0D"></span>Fekete</button>
             <label class="matte-opt matte-custom"><input type="color" id="matteCustom" value="#F0EDE4"><span>Egyéni</span></label>
           </div>
         </div>
@@ -404,7 +402,6 @@
     </div>
     <div class="done-thumb">
       <div class="frame frame-static">
-        <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
         <canvas id="doneCanvas"></canvas>
       </div>
     </div>

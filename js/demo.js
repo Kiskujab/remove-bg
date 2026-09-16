@@ -111,7 +111,7 @@
       play: function () {
         if (touched) return;
         var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var target = 0.42;
+        var target = 0.32;
         if (reduce) { slider.value = target * 1000; render(target); return; }
         var t0 = null, dur = 1600;
         function step(t) {

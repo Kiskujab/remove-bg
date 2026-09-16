@@ -88,7 +88,7 @@
   /** Slider position (0…1) → threshold in distance units. 1 means "everything". */
   function threshold(p, maxDist) {
     if (p >= 1) return MAX_D;
-    return Math.round(maxDist * p * p);
+    return Math.round(maxDist * p);
   }
 
   /**
