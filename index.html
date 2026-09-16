@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Színolló — háttéreltávolítás szín alapján, a böngésződben</title>
+  <meta name="description" content="Kattints a színre, ami marad, és egy csúszkával állítsd be a határt. Ingyenes, korlátlan, fiók nélküli háttéreltávolító, ami a saját gépeden fut.">
+  <meta name="theme-color" content="#F0EDE4">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/young-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow-r" viewBox="0 0 20 20"><path d="M3 10h13M11 4.5 16.5 10 11 15.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-arrow-l" viewBox="0 0 20 20"><path d="M17 10H4M9 4.5 3.5 10 9 15.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-rot-l" viewBox="0 0 20 20"><path d="M4.5 9.5a6 6 0 1 1 1.8 4.9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M1.8 6.2 4.6 10l3.7-2.9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-rot-r" viewBox="0 0 20 20"><path d="M15.5 9.5a6 6 0 1 0-1.8 4.9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m18.2 6.2-2.8 3.8-3.7-2.9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 20 20"><path d="M10 2.5v11M5 8.5l5 5 5-5M3.5 17.5h13" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-pipette" viewBox="0 0 20 20"><path d="m12.2 3.6 4.2 4.2M14.3 5.7 4.8 15.2 3 17l1.8-.2 9.5-9.5m-2.1-2.1 2.6-2.6a1.5 1.5 0 0 1 2.1 2.1l-2.6 2.6" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+</svg>
+
+<!-- 1. Betöltés -->
+<div id="loader" class="loader" role="status" aria-live="polite">
+  <div class="loader-mark">
+    <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+    <span class="loader-word">Színolló</span>
+  </div>
+  <div class="loader-line"><i id="loaderFill"></i></div>
+  <span class="visually-hidden">Betöltés…</span>
+</div>
+
+<!-- 2. Bemutató -->
+<div id="intro" class="intro" hidden>
+  <header class="intro-bar">
+    <span class="wordmark">Színolló</span>
+    <span class="mono dim">nem AI — szín alapján vág</span>
+  </header>
+
+  <main class="intro-main">
+    <div class="intro-copy">
+      <p class="eyebrow">Háttéreltávolítás a böngésződben</p>
+      <h1 class="intro-title">Kattints a színre, ami marad. <span class="title-soft">A többi eltűnik.</span></h1>
+      <p class="intro-lead">
+        A Színolló minden pixelt összemér a kiválasztott színnel, a csúszkán pedig te döntöd el,
+        mekkora eltérés fér még bele. Olyan, mint a filmesek zöld háttere, csak bármilyen színnel működik.
+      </p>
+      <div class="intro-cta">
+        <button class="btn btn-key btn-lg" id="startBtn" type="button">
+          Kezdés <svg class="ic"><use href="#i-arrow-r"/></svg>
+        </button>
+        <span class="mono dim cta-note">vagy dobj ide egy képet</span>
+      </div>
+    </div>
+
+    <figure class="demo" aria-label="Élő minta">
+      <div class="demo-frame">
+        <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+        <div class="demo-canvas-wrap checker">
+          <canvas id="demoCanvas" width="440" height="520"></canvas>
+          <span class="pick-marker is-static" id="demoMarker" aria-hidden="true"></span>
+        </div>
+      </div>
+      <figcaption class="demo-cap">
+        <div class="demo-row">
+          <span class="mono dim">Referencia</span>
+          <span class="swatch-inline" id="demoSwatch"></span>
+          <span class="mono" id="demoRef">#000000</span>
+          <span class="mono dim push">látszik</span>
+          <span class="mono" id="demoVisible">0%</span>
+        </div>
+        <label class="range-label" for="demoSlider">
+          <span>Tűrés — húzd el, és nézd, ahogy előjön a narancs</span>
+          <output class="mono" id="demoValue">0</output>
+        </label>
+        <input class="range" id="demoSlider" type="range" min="0" max="1000" value="0">
+      </figcaption>
+    </figure>
+
+    <dl class="facts">
+      <div class="fact">
+        <dt>Hol fut?</dt>
+        <dd>A saját gépeden, a böngészőben. A képed nem kerül fel semmilyen szerverre, és az oldal betöltése után internet nélkül is működik.</dd>
+      </div>
+      <div class="fact">
+        <dt>Mennyibe kerül?</dt>
+        <dd>Semmibe. Nincs regisztráció, nincs napi keret, nincs vízjel, és nincs „prémium” felbontás.</dd>
+      </div>
+      <div class="fact">
+        <dt>Milyen minőségben?</dt>
+        <dd>Az eredetiben. Egy 6000 pixel széles fotóból 6000 pixel széles kép lesz, köztes tömörítés nélkül.</dd>
+      </div>
+      <div class="fact">
+        <dt>Mikor nem jó?</dt>
+        <dd>Ha a tárgy és a háttér színe közel áll egymáshoz, például fehér bögre fehér asztalon. Egyszínű, elütő háttérnél adja a legtisztább élt.</dd>
+      </div>
+    </dl>
+  </main>
+
+  <footer class="intro-foot mono dim">
+    <span>Statikus oldal. Nincs süti, nincs követőkód, nincs szerveroldali feldolgozás.</span>
+  </footer>
+</div>
+
+<!-- 3–8. Munkafelület -->
+<div id="app" class="app" hidden>
+  <header class="bar">
+    <button class="wordmark wordmark-btn" type="button" id="homeBtn" title="Vissza a bemutatóhoz">Színolló</button>
+    <ol class="steps" id="steps">
+      <li><button type="button" data-go="upload"><span class="mono">01</span> Feltöltés</button></li>
+      <li><button type="button" data-go="color"><span class="mono">02</span> Szín</button></li>
+      <li><button type="button" data-go="bg"><span class="mono">03</span> Háttér</button></li>
+      <li><button type="button" data-go="rotate"><span class="mono">04</span> Forgatás</button></li>
+      <li><button type="button" data-go="download"><span class="mono">05</span> Letöltés</button></li>
+    </ol>
+    <span class="steps-compact mono" id="stepsCompact">01 / 05</span>
+  </header>
+
+  <div class="work" id="work">
+    <!-- Stage -->
+    <section class="stage" id="stage" aria-label="Kép">
+      <div class="dropzone" id="dropzone" data-state="idle">
+        <div class="dz-idle">
+          <p class="dz-title">Húzd ide<br>a képet.</p>
+          <div class="dz-actions">
+            <button class="btn btn-ink" type="button" id="browseBtn">Tallózás a gépen</button>
+            <span class="mono dim" id="pasteHint">vagy illeszd be: Ctrl+V</span>
+          </div>
+          <p class="dz-formats mono dim">JPG · PNG · WebP · AVIF · GIF</p>
+        </div>
+        <div class="dz-over" aria-hidden="true">
+          <p class="dz-title">Engedd el.</p>
+        </div>
+        <div class="dz-progress" aria-live="polite">
+          <p class="dz-phase mono" id="dzPhase">Fájl beolvasása</p>
+          <p class="dz-pct mono"><span id="dzPct">0</span><small>%</small></p>
+          <div class="bar-track"><i id="dzBar"></i></div>
+          <p class="dz-file mono dim" id="dzFile"></p>
+        </div>
+        <div class="dz-done" aria-live="polite">
+          <p class="dz-title">Betöltve.</p>
+          <p class="mono" id="dzDoneInfo"></p>
+          <button class="btn btn-line dz-another" type="button" id="dzAnother">Másik kép választása</button>
+        </div>
+        <div class="dz-error" role="alert">
+          <p class="dz-title dz-title-sm" id="dzErrorTitle">Ezt nem tudtam megnyitni.</p>
+          <p id="dzErrorText"></p>
+          <button class="btn btn-ink" type="button" id="dzRetry">Másik fájl választása</button>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+      </div>
+
+      <div class="viewer" id="viewer" hidden>
+        <div class="frame" id="frame">
+          <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+          <canvas id="view"></canvas>
+          <span class="pick-marker" id="pickMarker" hidden></span>
+        </div>
+        <p class="stage-hint mono" id="stageHint" hidden>
+          <svg class="ic"><use href="#i-pipette"/></svg><span id="stageHintText">Kattints a képen arra a színre, ami maradjon</span>
+        </p>
+        <div class="busy" id="busy" hidden>
+          <p class="mono" id="busyText">Kivágás teljes felbontásban</p>
+          <p class="busy-pct mono"><span id="busyPct">0</span>%</p>
+          <div class="bar-track"><i id="busyBar"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel -->
+    <aside class="panel" id="panel">
+
+      <!-- 01 Feltöltés -->
+      <section class="step" data-step="upload">
+        <p class="eyebrow">01 — Feltöltés</p>
+        <h2 class="step-title">Válassz egy képet</h2>
+        <p class="step-text">Húzd a képet a mezőbe, vagy tallózd be. A fájl a gépeden marad: a böngésző olvassa be, nem egy szerver.</p>
+        <dl class="notes">
+          <div><dt>Legjobb</dt><dd>Egyszínű háttér előtt, egyenletes fénnyel fotózott tárgy.</dd></div>
+          <div><dt>Formátum</dt><dd>Bármi, amit a böngésződ meg tud nyitni. A HEIC többnyire csak Safariban megy.</dd></div>
+          <div><dt>Méret</dt><dd>Nincs mesterséges korlát. Nagyon nagy képeknél a böngésző vászonmérete szab határt, erről szólunk.</dd></div>
+        </dl>
+      </section>
+
+      <!-- 02 Szín -->
+      <section class="step" data-step="color" hidden>
+        <p class="eyebrow">02 — Szín</p>
+        <h2 class="step-title" id="colorTitle">Kattints a színre, ami marad</h2>
+
+        <div class="seg" role="radiogroup" aria-label="Mit csináljon a kiválasztott színnel">
+          <button type="button" role="radio" aria-checked="true" data-mode="keep">Ez a szín marad</button>
+          <button type="button" role="radio" aria-checked="false" data-mode="remove">Ez a szín tűnik el</button>
+        </div>
+
+        <div class="refbox" id="refBox" data-empty="true">
+          <span class="swatch" id="refSwatch"></span>
+          <div>
+            <p class="mono ref-hex" id="refHex">nincs kiválasztva</p>
+            <p class="dim small" id="refHelp">A pipetta a képen van: kattints vagy érints egy pontot.</p>
+          </div>
+        </div>
+
+        <div class="control" id="tolControl">
+          <label class="range-label" for="tolSlider">
+            <span>Tűrés</span>
+            <output class="mono big-out" id="tolValue">0</output>
+          </label>
+          <input class="range" id="tolSlider" type="range" min="0" max="1000" value="0" disabled>
+          <div class="range-ends mono dim"><span>csak ez a szín</span><span id="tolEnd">minden látszik</span></div>
+        </div>
+
+        <div class="visible-meter" id="visibleMeter" aria-live="off">
+          <div class="bar-track thin"><i id="visibleBar"></i></div>
+          <p class="small"><span class="mono" id="visibleText">—</span></p>
+        </div>
+
+        <div class="control">
+          <label class="range-label" for="softSlider">
+            <span>Lágy szél</span>
+            <output class="mono" id="softValue">0</output>
+          </label>
+          <input class="range" id="softSlider" type="range" min="0" max="100" value="0" disabled>
+          <p class="dim small">Éles, lépcsős kontúr helyett fokozatos átmenet a határon.</p>
+        </div>
+
+        <button class="btn btn-line btn-sm hold" type="button" id="holdOriginal" disabled>Tartsd lenyomva: eredeti</button>
+      </section>
+
+      <!-- 03 Háttér -->
+      <section class="step" data-step="bg" hidden>
+        <p class="eyebrow">03 — Háttér</p>
+        <h2 class="step-title">Mi kerüljön a kivágott rész helyére?</h2>
+
+        <div class="choices" role="radiogroup" aria-label="Háttér">
+          <div class="choice" data-bg="none" aria-checked="true" role="radio" tabindex="0">
+            <span class="choice-thumb checker"></span>
+            <div class="choice-body">
+              <p class="choice-name">Nincs háttér</p>
+              <p class="small dim">Átlátszó marad. Ehhez PNG vagy WebP kell — JPG-ben egy színnel töltjük ki.</p>
+            </div>
+          </div>
+
+          <div class="choice" data-bg="color" aria-checked="false" role="radio" tabindex="-1">
+            <span class="choice-thumb" id="colorThumb"></span>
+            <div class="choice-body">
+              <p class="choice-name">Egyszínű</p>
+              <p class="small dim">Minden háttérpixel erre a színre cserélődik.</p>
+            </div>
+          </div>
+          <div class="choice-detail" data-for="color" hidden>
+            <div class="rgb">
+              <label class="rgb-row"><span class="mono">R</span><input class="range rgb-range" data-ch="0" type="range" min="0" max="255" value="255"><output class="mono">255</output></label>
+              <label class="rgb-row"><span class="mono">G</span><input class="range rgb-range" data-ch="1" type="range" min="0" max="255" value="255"><output class="mono">255</output></label>
+              <label class="rgb-row"><span class="mono">B</span><input class="range rgb-range" data-ch="2" type="range" min="0" max="255" value="255"><output class="mono">255</output></label>
+            </div>
+            <div class="rgb-foot">
+              <label class="hex-field"><span class="visually-hidden">Színkód</span><input class="mono" id="hexInput" type="text" value="#FFFFFF" maxlength="7" spellcheck="false" autocomplete="off"></label>
+              <div class="presets" id="presets">
+                <button type="button" data-hex="#FFFFFF" title="Fehér" style="--c:#FFFFFF"></button>
+                <button type="button" data-hex="#F0EDE4" title="Papír" style="--c:#F0EDE4"></button>
+                <button type="button" data-hex="#8C8C8C" title="Szürke" style="--c:#8C8C8C"></button>
+                <button type="button" data-hex="#161614" title="Fekete" style="--c:#161614"></button>
+                <button type="button" data-hex="#00B140" title="Zöld" style="--c:#00B140"></button>
+                <button type="button" data-hex="#1F4FD1" title="Kék" style="--c:#1F4FD1"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="choice" data-bg="image" aria-checked="false" role="radio" tabindex="-1">
+            <span class="choice-thumb" id="imageThumb"></span>
+            <div class="choice-body">
+              <p class="choice-name">Saját kép</p>
+              <p class="small dim">Egy másik fotó kerül mögé, a teljes képet kitöltve.</p>
+            </div>
+          </div>
+          <div class="choice-detail" data-for="image" hidden>
+            <div class="minidrop" id="bgDrop" data-state="idle">
+              <div class="md-idle">
+                <p>Húzd ide a háttérképet</p>
+                <button class="btn btn-line btn-sm" type="button" id="bgBrowse">Tallózás</button>
+              </div>
+              <div class="md-progress">
+                <p class="mono"><span id="bgPct">0</span>% <span class="dim" id="bgPhase">beolvasás</span></p>
+                <div class="bar-track thin"><i id="bgBar"></i></div>
+              </div>
+              <div class="md-done">
+                <p class="mono small" id="bgInfo"></p>
+                <button class="btn btn-line btn-sm" type="button" id="bgReplace">Csere</button>
+              </div>
+              <div class="md-error">
+                <p class="small" id="bgError">Ezt a fájlt nem tudtam megnyitni.</p>
+                <button class="btn btn-line btn-sm" type="button" id="bgRetry">Másik fájl</button>
+              </div>
+              <input type="file" id="bgInput" accept="image/*" hidden>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 Forgatás -->
+      <section class="step" data-step="rotate" hidden>
+        <p class="eyebrow">04 — Forgatás</p>
+        <h2 class="step-title">Egyenesítsd ki vagy fordítsd el</h2>
+
+        <div class="rotate">
+          <div class="dial" id="dial" role="slider" tabindex="0" aria-label="Forgatás szöge" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0" aria-valuetext="0 fok">
+            <svg viewBox="0 0 200 200" aria-hidden="true">
+              <g id="dialTicks"></g>
+              <g id="dialHand">
+                <line x1="100" y1="100" x2="100" y2="26" class="dial-hand"/>
+                <rect x="92" y="14" width="16" height="16" class="dial-knob"/>
+              </g>
+              <circle cx="100" cy="100" r="3.5" class="dial-hub"/>
+            </svg>
+          </div>
+          <div class="rotate-side">
+            <output class="angle" id="angleOut">0°</output>
+            <div class="nudge">
+              <button class="btn btn-line btn-sm" type="button" data-nudge="-1">−1°</button>
+              <button class="btn btn-line btn-sm" type="button" data-nudge="1">+1°</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="quarter">
+          <button class="btn btn-line" type="button" data-quarter="-90"><svg class="ic"><use href="#i-rot-l"/></svg> 90° balra</button>
+          <button class="btn btn-line" type="button" data-quarter="90">90° jobbra <svg class="ic"><use href="#i-rot-r"/></svg></button>
+        </div>
+        <button class="btn btn-text" type="button" id="resetAngle">Vissza 0°-ra</button>
+
+        <dl class="notes">
+          <div><dt>Kimenet</dt><dd class="mono" id="rotSize">—</dd></div>
+          <div><dt>Vászon</dt><dd>Ferde szögnél a kép köré bővül, így semmi nem lóg le. A sarkokba a választott háttér kerül.</dd></div>
+        </dl>
+        <p class="dim small">Tipp: húzd a korongot körbe. A 0°, 90° és 180° körül enyhén beakad.</p>
+      </section>
+
+      <!-- 05 Letöltés -->
+      <section class="step" data-step="download" hidden>
+        <p class="eyebrow">05 — Letöltés</p>
+        <h2 class="step-title">Mentsd el</h2>
+
+        <div class="formats" role="radiogroup" aria-label="Formátum">
+          <button type="button" role="radio" class="format" data-format="png" aria-checked="true">
+            <span class="format-name">PNG</span><span class="small dim">veszteségmentes, átlátszó is lehet</span>
+          </button>
+          <button type="button" role="radio" class="format" data-format="jpg" aria-checked="false">
+            <span class="format-name">JPG</span><span class="small dim">kisebb fájl, átlátszóság nélkül</span>
+          </button>
+          <button type="button" role="radio" class="format" data-format="webp" aria-checked="false">
+            <span class="format-name">WebP</span><span class="small dim" id="webpNote">kicsi fájl, átlátszó is lehet</span>
+          </button>
+        </div>
+
+        <div class="matte" id="matteBox" hidden>
+          <p><strong>A JPG nem ismeri az átlátszóságot.</strong> Az üres részek ezzel a színnel telnek ki:</p>
+          <div class="matte-row">
+            <button type="button" class="matte-opt" data-matte="#FFFFFF" aria-pressed="true"><span style="--c:#FFFFFF"></span>Fehér</button>
+            <button type="button" class="matte-opt" data-matte="#161614" aria-pressed="false"><span style="--c:#161614"></span>Fekete</button>
+            <label class="matte-opt matte-custom"><input type="color" id="matteCustom" value="#F0EDE4"><span>Egyéni</span></label>
+          </div>
+        </div>
+
+        <div class="control" id="qualityControl" hidden>
+          <label class="range-label" for="qualitySlider">
+            <span>Minőség</span>
+            <output class="mono" id="qualityValue">92</output>
+          </label>
+          <input class="range" id="qualitySlider" type="range" min="50" max="100" value="92">
+        </div>
+
+        <label class="field">
+          <span class="field-label">Fájlnév</span>
+          <span class="field-row"><input type="text" id="fileName" spellcheck="false" autocomplete="off"><span class="mono ext" id="fileExt">.png</span></span>
+        </label>
+
+        <dl class="notes">
+          <div><dt>Méret</dt><dd class="mono" id="outSize">—</dd></div>
+        </dl>
+        <p class="warn small" id="limitNote" hidden></p>
+      </section>
+
+      <!-- Panel actions -->
+      <div class="actions" id="actions">
+        <button class="btn btn-line" type="button" id="backBtn"><svg class="ic"><use href="#i-arrow-l"/></svg> Vissza</button>
+        <button class="btn btn-key" type="button" id="nextBtn"><span id="nextLabel">Tovább</span> <svg class="ic"><use id="nextIcon" href="#i-arrow-r"/></svg></button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 8. Befejezés -->
+  <section class="done" id="done" hidden>
+    <div class="done-copy">
+      <p class="eyebrow">Kész</p>
+      <h2 class="done-title">Köszönjük, hogy a Színollót használtad.</h2>
+      <p class="done-file">A fájl elindult a letöltések közé: <strong class="mono" id="doneName"></strong> <span class="mono dim" id="doneMeta"></span></p>
+      <div class="done-actions">
+        <button class="btn btn-key btn-lg" type="button" id="newImageBtn">Új kép szerkesztése <svg class="ic"><use href="#i-arrow-r"/></svg></button>
+        <button class="btn btn-line" type="button" id="againBtn">Más formátumban is letöltöm</button>
+      </div>
+      <p class="dim small done-note">Ha hasznos volt, küldd el annak, aki még mindig fizet egy háttér levágásáért.</p>
+    </div>
+    <div class="done-thumb">
+      <div class="frame frame-static">
+        <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+        <canvas id="doneCanvas"></canvas>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="loupe" id="loupe" hidden aria-hidden="true">
+  <canvas id="loupeCanvas" width="132" height="132"></canvas>
+  <span class="loupe-label mono" id="loupeLabel"></span>
+</div>
+
+<div class="drop-veil" id="dropVeil" hidden aria-hidden="true">
+  <p>Engedd el a képet.</p>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/media.js"></script>
+<script src="js/demo.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
